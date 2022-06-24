@@ -4,7 +4,6 @@ import Script1 from "../3cf05054-0a57-4b00-ba77-a3f21876494d/src/item"
 import Script2 from "../e7a6c753-ea84-4c8e-bb94-4523407a5d55/src/item"
 import Script3 from "../ab84996d-dcdc-429c-818e-a7640239c803/src/item"
 
-
 import * as ui from '@dcl/ui-scene-utils'
 
 const channelId = Math.random().toString(16).slice(2)
@@ -297,35 +296,6 @@ gltfShape6.isPointerBlocker = true
 gltfShape6.visible = true
 floorCreamSmall.addComponentOrReplace(gltfShape6)
 
-// const customPromptUi = () => {
-//     let prompt = new ui.CustomPrompt(ui.PromptStyles.DARKSLANTED)
-// prompt.addText('What will you do?', 0, 130, Color4.Red(), 30)
-// prompt.addText("It's an important decision", 0, 100)
-// let checkBox = prompt.addTextBox(0, 100)
-// checkBox
-// let button1 = prompt.addButton(
-//   'Yeah',
-//   0,
-//   -30,
-//   () => {
-//     log('Yes')
-//     prompt.hide()
-//   },
-//   ui.ButtonStyles.E
-// )
-// let button2 = prompt.addButton(
-//   'Nope',
-//   0,
-//   -90,
-//   () => {
-//     log('No')
-//     prompt.hide()
-//   },
-//   ui.ButtonStyles.F
-// )
-  
-// }
-
 const coffeeTable = new Entity('coffeeTable')
 engine.addEntity(coffeeTable)
 coffeeTable.setParent(_scene)
@@ -370,44 +340,22 @@ const fakeResponse = {
   3: "let me process about your checkbook."
 };
 
-async function getResponse(j) {
+async function getResponse(j: number) {
   // let url = `https://jsonplaceholder.typicode.com/posts/${j}`
   
   try {
     // let response = await fetch(url)
     // let json = await response.json()
-    log("Get", fakeResponse[j])
-    // script2.spawn(messageBubble, {"text": '',"fontSize":15}, createChannel(channelId, messageBubble, channelBus))
-    
-    fakeResponse[j] && script2.spawn(messageBubble, {"text": fakeResponse[j],"fontSize":15, removeEntity:false}, createChannel(channelId, messageBubble, channelBus))
-    // const prompt = new ui.FillInPrompt(
-    //  '',
-    //   (e: string) => {
-    //     log(e)
-    //     // script2.spawn(messageBubble, {"text": json.title,"fontSize":15, removeEntity: true}, createChannel(channelId, messageBubble, channelBus))
-    //     addRequest({ title : e }).then((data) => {
-    //       log('Added:',data);
-    //       j += 1;
-    //      getResponse(j)
-    //     })
-    //   },
-    //   'Submit!',
-    //   'Add Your inpur here!'
-    // )
-    // prompt.canvas.height = 10
-    // customPromptUi()
+     fakeResponse[j] && script2.spawn(messageBubble, {"text": fakeResponse[j],"fontSize":15, removeEntity:false})
   } catch(error){
     log('error getting data', error)
   }
 }
 
-// log('getmsg',getMessage())
-
 
 // POST method 
 async function addRequest(data = {}) {
   let url = "https://jsonplaceholder.typicode.com/posts"
-  // script2.spawn(messageBubble, {"text": '',"fontSize":15}, createChannel(channelId, messageBubble, channelBus))
   try{
     const response = await fetch(url, {
       method: 'POST',
@@ -426,23 +374,68 @@ async function addRequest(data = {}) {
 }
 
 let i = 0;
+const canvas = new UICanvas()
+
 coffeeTable.addComponent(
   new OnPointerDown(
     () => {
-      const prompt = new ui.FillInPrompt(
-        '',
-        (e: string) => {
-          log(e)
-          i += 1;
-          addRequest({ title : e }).then((data) => {
+       const textInput = new UIInputText(canvas)
+       textInput.width = "20%"
+       textInput.height = "50px"
+       textInput.vAlign = "bottom"
+       textInput.hAlign = "center"
+       textInput.fontSize = 20
+       textInput.placeholder = "Write your message here"
+       textInput.positionY = "150px"
+       textInput.isPointerBlocker = true
+       textInput.textWrapping = true
+       textInput.positionX = "-300px"
+      //  textInput.paddingTop = 30
+
+      const close = new UIImage(canvas, new Texture("images/c-icon.png"))
+      close.name = "clickable-image"
+      close.width = "20px"
+      close.height = "20px"
+      close.sourceWidth = 250
+      close.sourceHeight = 250
+      close.vAlign = "bottom"
+      close.hAlign = "center"
+      close.isPointerBlocker = true
+      close.positionX = "-190px"
+      close.positionY = "205px"
+      close.onClick = new OnPointerDown(() => {
+          canvas.visible = false
+          canvas.isPointerBlocker = false
+          textInput.visible = false;
+          close.visible = false;
+      })
+
+       textInput.onTextSubmit = new OnTextSubmit((x) => {
+            i += 1;
+            addRequest({ title : x.text }).then((data) => {
             log('Added:',data);
             getResponse(i)
           })
-        },
-        'Submit!',
-        'Enter your Input',
-        false
-      )
+          canvas.visible = false
+          canvas.isPointerBlocker = false
+          textInput.visible = false;
+          close.visible = false;
+        })
+
+      // let prompt = new ui.FillInPrompt(
+      //   '',
+      //   (e: string) => {
+      //     log(e)
+      //     i += 1;
+      //     addRequest({ title : e }).then((data) => {
+      //       log('Added:',data);
+      //       getResponse(i)
+      //     })
+      //   },
+      //   'Submit!',
+      //   'Enter your Input',
+      //   false,
+      // )
     },{
       button: ActionButton.PRIMARY,
       hoverText: "Interact with receptionist",
