@@ -5,6 +5,7 @@ import Script2 from "../e7a6c753-ea84-4c8e-bb94-4523407a5d55/src/item";
 import Script3 from "../ab84996d-dcdc-429c-818e-a7640239c803/src/item";
 
 import * as ui from "@dcl/ui-scene-utils";
+import { addRequest } from "../utils/backend-apis";
 
 const channelId = Math.random().toString(16).slice(2);
 const channelBus = new MessageBus();
@@ -396,16 +397,12 @@ const fakeResponse = {
   4: "Sure, Let's discuss...",
 };
 
-async function getResponse(j: number) {
-  // let url = `https://jsonplaceholder.typicode.com/posts/${j}`
-
+async function getResponse(data: any) {
   try {
-    // let response = await fetch(url)
-    // let json = await response.json()
-    fakeResponse[j] &&
+    data.messages &&
       script2.spawn(messageBubble, {
-        text: fakeResponse[j],
-        fontSize: 15,
+        text: data.messages[0].message.speechData,
+        fontSize: 10,
         removeEntity: false,
       });
   } catch (error) {
@@ -413,24 +410,6 @@ async function getResponse(j: number) {
   }
 }
 
-// POST method
-async function addRequest(data = {}) {
-  let url = "https://jsonplaceholder.typicode.com/posts";
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  } catch {
-    log("Something went wonrg");
-  }
-}
-
-let i = 0;
 const canvas = new UICanvas();
 
 coffeeTable.addComponent(
@@ -469,31 +448,18 @@ coffeeTable.addComponent(
       });
 
       textInput.onTextSubmit = new OnTextSubmit((x) => {
-        i += 1;
-        addRequest({ title: x.text }).then((data) => {
+        addRequest({
+          messageContent: x.text,
+          messageId: new Date().getTime(),
+        }).then((data) => {
           log("Added:", data);
-          getResponse(i);
+          getResponse(data);
         });
         canvas.visible = false;
         canvas.isPointerBlocker = false;
         textInput.visible = false;
         close.visible = false;
       });
-
-      // let prompt = new ui.FillInPrompt(
-      //   '',
-      //   (e: string) => {
-      //     log(e)
-      //     i += 1;
-      //     addRequest({ title : e }).then((data) => {
-      //       log('Added:',data);
-      //       getResponse(i)
-      //     })
-      //   },
-      //   'Submit!',
-      //   'Enter your Input',
-      //   false,
-      // )
     },
     {
       button: ActionButton.PRIMARY,
@@ -503,21 +469,6 @@ coffeeTable.addComponent(
     }
   )
 );
-
-// const highBackCourtChair = new Entity('highBackCourtChair')
-// engine.addEntity(highBackCourtChair)
-// highBackCourtChair.setParent(_scene)
-// const transform23 = new Transform({
-//   position: new Vector3(9.5, 2, 17.5),
-//   rotation: new Quaternion(-1.5014858600494022e-15, 0.7071068286895752, -8.429369557916289e-8, 0.7071067690849304),
-//   scale: new Vector3(2.140167236328125, 1.55, 1.6098378896713257)
-// })
-// highBackCourtChair.addComponentOrReplace(transform23)
-// const gltfShape8 = new GLTFShape("f7e9fb72-01a7-4260-a98d-32b62acae142/Chair_Wood_01/Chair_Wood_01.glb")
-// gltfShape8.withCollisions = true
-// gltfShape8.isPointerBlocker = true
-// gltfShape8.visible = true
-// highBackCourtChair.addComponentOrReplace(gltfShape8)
 
 const sofaBlack = new Entity("sofaBlack");
 engine.addEntity(sofaBlack);
